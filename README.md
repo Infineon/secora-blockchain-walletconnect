@@ -1,0 +1,1 @@
+# secora-blockchain-walletconnect
