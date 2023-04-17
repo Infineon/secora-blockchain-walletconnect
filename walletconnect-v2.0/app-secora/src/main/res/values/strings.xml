@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">WalletConnect v2.0</string>
+    <string-array name="nfc_actions">
+        <item>Read public key or create if not exist</item>
+        <item>Generate key from seed</item>
+        <item>Sign message</item>
+        <item>Set PIN</item>
+        <item>Change PIN</item>
+        <item>Unlock PIN</item>
+    </string-array>
+</resources>

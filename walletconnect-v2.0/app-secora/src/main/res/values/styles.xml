@@ -1,0 +1,16 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@drawable/splash_bg</item>
+        <item name="colorPrimary">#3375BB</item>
+        <item name="colorPrimaryDark">#3375bb</item>
+        <item name="colorAccent">#3375bb</item>
+    </style>
+
+    <style name="TextLabel" parent="TextAppearance.Design.Hint">
+        <item name="android:textSize">8sp</item>
+    </style>
+
+</resources>

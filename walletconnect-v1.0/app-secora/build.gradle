@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.owasp.dependencycheck'
+apply plugin: 'com.mikepenz.aboutlibraries.plugin'
+
+
+android {
+    compileSdkVersion 31
+    defaultConfig {
+        applicationId "com.infineon.walletconnect.v1.sample"
+        minSdkVersion 23
+        targetSdkVersion 31
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        viewBinding = true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(":walletconnect")
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.6.1'
+
+    implementation "com.squareup.okhttp3:okhttp:4.9.3"
+    implementation "com.google.code.gson:gson:2.9.0"
+
+    implementation "com.github.infineon:secora-blockchain-apdu-java-library:master-SNAPSHOT"
+    implementation "com.github.yuriy-budiyev:code-scanner:2.3.2"
+    implementation "org.web3j:core:4.8.8-android"
+}

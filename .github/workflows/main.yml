@@ -1,0 +1,90 @@
+name:
+  CI
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * MON'
+jobs:
+  test:
+    name: Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3.0.3
+        continue-on-error: true
+        with:
+          head-ref: ${{ github.ref }}
+          base-ref: 878bff708864653b5e6f10076760993478ec5db6
+          fail-on-severity: low
+          allow-licenses: MIT, BSD-2-Clause, BSD-3-Clause, Apache-1.1, Apache-2.0
+      - name: Build Projects
+        env:
+          PROJECT_NAME: ${{ github.event.repository.name }}
+          DOCKER_IMAGE: gradle:7.6.0-jdk11
+        run: |
+          .github/docker/launcher.sh
+        shell: bash
+      - name: Upload Android Apks
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apks
+          path: |
+            walletconnect-v1.0/app-secora/build/outputs/apk/release/*.apk
+            walletconnect-v2.0/app-secora/build/outputs/apk/release/*.apk
+      - name: Upload Software Composition Analysis Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: sca-reports
+          path: |
+            walletconnect-v1.0/cve-check_app-secora.html
+            walletconnect-v1.0/cve-check_walletconnect.html
+            walletconnect-v1.0/license-check_app-secora.txt
+            walletconnect-v1.0/license-check_walletconnect.txt
+            walletconnect-v2.0/cve-check_app-secora.html
+            walletconnect-v2.0/license-check_app-secora.txt
+  release:
+    name: Create Release
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Download Android Apks
+        uses: actions/download-artifact@v3
+        with:
+          name: android-apks
+          path: apks-collection
+      - name: Download Software Composition Analysis Reports
+        uses: actions/download-artifact@v3
+        with:
+          name: sca-reports
+          path: reports-collection
+      - name: Consolidate Assets
+        run: |
+          sudo apt -y install zip
+          cd apks-collection && zip -r ../apks.zip * && cd ..
+          cd reports-collection && zip -r ../reports.zip * && cd ..
+      - name: Changelog Pruning
+        run: |
+          sed -n `awk '/## \[${{ github.ref_name }}/{c++} c==1{ print NR; exit }' CHANGELOG.md`',$p' CHANGELOG.md > .CHANGELOG.md.tmp
+          sed `awk '/## \[[x0-9]/{c++} c==2{ print NR; exit }' .CHANGELOG.md.tmp`',$d' .CHANGELOG.md.tmp > ${{ github.workspace }}-CHANGELOG.txt
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
+          files: |
+            LICENSE
+            apks.zip
+            reports.zip
