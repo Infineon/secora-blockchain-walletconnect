@@ -33,8 +33,8 @@ import com.walletconnect.android.internal.common.cacao.signature.Signature
 import com.walletconnect.android.internal.common.cacao.signature.toCacaoSignature
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import okhttp3.internal.and
 import org.json.JSONArray
 import org.json.JSONObject
@@ -42,11 +42,13 @@ import org.web3j.crypto.*
 import org.web3j.crypto.transaction.type.TransactionType
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
+import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.http.HttpService
 import org.web3j.rlp.RlpEncoder
 import org.web3j.rlp.RlpList
 import java.math.BigInteger
 import java.nio.charset.Charset
+
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
@@ -732,10 +734,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                         val jsonArray = JSONArray(sessionRequest.request.params)
                         val jsonObject = JSONObject(jsonArray.getString(0))
 
-                        /* Public node provider examples:
-                           - https://www.infura.io/
-                           - https://blastapi.io/public-api/ethereum
-                           - and many more ... */
+                        /* Public node provider list: https://ethereumnodes.com/ */
                         when (chainId) {
                             Chains.ETHEREUM_MAIN.chainReference.toLong() -> {
                                 web3j = Web3j.build(HttpService("https://eth-mainnet.public.blastapi.io"))
@@ -755,22 +754,40 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                         } else {
                             BigInteger(jsonObject.getString("gasPrice").removePrefix("0x"), 16)
                         }
+                        val data = if (jsonObject.has("data")) {
+                            jsonObject.getString("data")
+                        } else {
+                            null
+                        }
+                        val value = if (!jsonObject.has("value")) {
+                            throw Exception("Field value is null")
+                        } else {
+                            BigInteger(jsonObject.getString("value").removePrefix("0x"), 16)
+                        }
+                        val to = if (!jsonObject.has("to")) {
+                            throw Exception("Field to is null")
+                        } else {
+                            jsonObject.getString("to")
+                        }
                         val gasLimit = if (!jsonObject.has("gasLimit")) {
-                            web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).sendAsync().get().block.gasLimit
+                            val transactionEstimation: Transaction = Transaction.createFunctionCallTransaction(
+                                address,
+                                nonce,
+                                gasPrice,
+                                BigInteger("0",10),
+                                to,
+                                value,
+                                data
+                            )
+                            val ethEstimateGas = web3j.ethEstimateGas(transactionEstimation).sendAsync().get()
+                            ethEstimateGas.amountUsed
                         } else {
                             BigInteger(jsonObject.getString("gasLimit").removePrefix("0x"), 16)
                         }
-                        var value = if (!jsonObject.has("value")) {
-                            throw Exception("Field value is null")
-                        } else {
-                            jsonObject.getString("value").removePrefix("0x")
-                        }
-                        val maxPriorityFeePerGas = BigInteger("1", 10)
-                        val maxFeePerGas = maxPriorityFeePerGas + gasPrice
 
                         /* Create TransactionType.LEGACY */
                         rawTransaction = RawTransaction.createTransaction(nonce, gasPrice,
-                            gasLimit, jsonObject.getString("to"), BigInteger(value, 16),
+                            gasLimit, jsonObject.getString("to"), value,
                             jsonObject.getString("data"))
                         val encodedTransaction = TransactionEncoder.encode(rawTransaction, chainId)
 
@@ -794,6 +811,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                         dialogMessage = messageByteArray.toString(Charset.defaultCharset())
                         byteArrayToSign = Hash.sha3(prefix + messageByteArray)
                     }
+                    "eth_signTypedData_v4",
                     "eth_signTypedData" -> {
 
                         val jsonArray = JSONArray(sessionRequest.request.params)

@@ -41,6 +41,7 @@ enum class Chains(
                 "eth_signTransaction",
                 "eth_sign",
                 "eth_signTypedData",
+                "eth_signTypedData_v4",
                 "personal_sign"
             )
         }

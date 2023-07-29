@@ -14,7 +14,7 @@ What is WalletConnect? WalletConnect is a widely supported open protocol that en
     <th>Description</th>
   </tr>
   <tr>
-    <td>v1.0</td>
+    <td>v1.0<br><b>*This version has already been sunsetted</b></td>
     <td>The implementation is based on examples from <a href="https://docs.walletconnect.com/1.0/quick-start/wallets/kotlin">WalletConnect v1.0</a>. The project is built on top of <a href="https://github.com/trustwallet/wallet-connect-kotlin/tree/75b2590a7002a0c7ef1c0ee9633aac58eed0c643">wallet-connect-kotlin@75b2590</a> and utilizes the <a href="https://github.com/infineon/secora-blockchain-apdu-java-library">secora-blockchain-apdu-java-library</a> to communicate with Infineon's SECORA™ Blockchain.</td>
   </tr>
   <tr>
