@@ -58,12 +58,12 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download Android Apks
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: android-apks
           path: apks-collection
       - name: Download Software Composition Analysis Reports
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: sca-reports
           path: reports-collection
